@@ -1,0 +1,10 @@
+D:\Visual Studio\Slovo\Slovo\bin\Debug\Slovo.exe.config
+D:\Visual Studio\Slovo\Slovo\bin\Debug\Slovo.exe
+D:\Visual Studio\Slovo\Slovo\bin\Debug\Slovo.pdb
+D:\Visual Studio\Slovo\Slovo\obj\Debug\Slovo.csprojAssemblyReference.cache
+D:\Visual Studio\Slovo\Slovo\obj\Debug\Slovo.Form1.resources
+D:\Visual Studio\Slovo\Slovo\obj\Debug\Slovo.Properties.Resources.resources
+D:\Visual Studio\Slovo\Slovo\obj\Debug\Slovo.csproj.GenerateResource.cache
+D:\Visual Studio\Slovo\Slovo\obj\Debug\Slovo.csproj.CoreCompileInputs.cache
+D:\Visual Studio\Slovo\Slovo\obj\Debug\Slovo.exe
+D:\Visual Studio\Slovo\Slovo\obj\Debug\Slovo.pdb
