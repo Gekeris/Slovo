@@ -15,7 +15,7 @@ namespace Slovo
 {
 	public class User
 	{
-		public Guid guid;
+		public string Nick;
 		public Socket socket;
 
 		public void ServerSendMessage(string message)
@@ -29,14 +29,9 @@ namespace Slovo
 			}
 		}
 
-		public Task<string> ServerCreateGuidParam(Socket s)
+		public void ServerSetUserSocket(Socket s)
 		{
 			socket = s;
-			return Task.Run(() =>
-			{
-				guid = Guid.NewGuid();
-				return $"{guid}@{Form1.XmlRsaParam}";
-			});
 		}
 
 		// https://stackoverflow.com/questions/2661764/how-to-check-if-a-socket-is-connected-disconnected-in-c
@@ -48,6 +43,60 @@ namespace Slovo
 				return false;
 			else
 				return true;
+		}
+
+		public void SendObject(object obj)
+		{
+			using (Stream s = new NetworkStream(socket))
+			{
+				MemoryStream memory = new MemoryStream();
+				BinaryFormatter formatter = new BinaryFormatter();
+				formatter.Serialize(memory, obj);
+				byte[] newObj = memory.ToArray();
+
+				memory.Position = 0;
+				s.Write(newObj, 0, newObj.Length);
+			}
+		}
+
+		public Task<object> RecieveObject()
+		{
+			return Task.Run(() =>
+			{
+				if (socket.Available == 0)
+					return null;
+
+				byte[] data = new byte[socket.ReceiveBufferSize];
+
+				using (Stream s = new NetworkStream(socket))
+				{
+					s.Read(data, 0, data.Length);
+					MemoryStream memory = new MemoryStream(data);
+					memory.Position = 0;
+
+					BinaryFormatter formatter = new BinaryFormatter();
+					object obj = formatter.Deserialize(memory);
+
+					return obj;
+				}
+			});
+		}
+
+		internal object ServerReadObject()
+		{
+			byte[] data = new byte[socket.ReceiveBufferSize];
+
+			using (Stream s = new NetworkStream(socket))
+			{
+				s.Read(data, 0, data.Length);
+				MemoryStream memory = new MemoryStream(data);
+				memory.Position = 0;
+
+				BinaryFormatter formatter = new BinaryFormatter();
+				object obj = formatter.Deserialize(memory);
+
+				return obj;
+			}
 		}
 	}
 }
