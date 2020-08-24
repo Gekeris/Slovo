@@ -10,13 +10,27 @@ using System.Net;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace Slovo
 {
 	public class User
 	{
 		public string Nick;
-		public Socket socket;
+		private Socket s;
+		public Socket socket
+		{
+			get
+			{
+				return s;
+			}
+			set
+			{
+				s = value;
+				s.SendBufferSize = 1000;
+				s.ReceiveBufferSize = 1000;
+			}
+		}
 
 		public void ServerSendMessage(string message)
 		{
@@ -53,8 +67,8 @@ namespace Slovo
 				BinaryFormatter formatter = new BinaryFormatter();
 				formatter.Serialize(memory, obj);
 				byte[] newObj = memory.ToArray();
-
 				memory.Position = 0;
+				memory.Close();
 				s.Write(newObj, 0, newObj.Length);
 			}
 		}
@@ -69,16 +83,18 @@ namespace Slovo
 				byte[] data = new byte[socket.ReceiveBufferSize];
 
 				using (Stream s = new NetworkStream(socket))
-				{
 					s.Read(data, 0, data.Length);
-					MemoryStream memory = new MemoryStream(data);
-					memory.Position = 0;
+				MemoryStream memory = new MemoryStream(data);
+				memory.Position = 0;
 
-					BinaryFormatter formatter = new BinaryFormatter();
-					object obj = formatter.Deserialize(memory);
+				BinaryFormatter formatter = new BinaryFormatter();
+				object obj = formatter.Deserialize(memory);
+				memory.Close();
 
-					return obj;
-				}
+				if (obj is byte[] byteObj)
+					obj = AesEncryption.Decryption(byteObj);
+
+				return obj;
 			});
 		}
 
@@ -94,7 +110,7 @@ namespace Slovo
 
 				BinaryFormatter formatter = new BinaryFormatter();
 				object obj = formatter.Deserialize(memory);
-
+				memory.Close();
 				return obj;
 			}
 		}

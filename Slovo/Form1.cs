@@ -27,7 +27,6 @@ namespace Slovo
 		List<User> users;
 		User clientUser;
 		RSACng rsa;
-		AesCng ServerKey;
 		public Form1()
 		{
 			InitializeComponent();
@@ -37,11 +36,13 @@ namespace Slovo
 		{
 			PortTextBox.Text = "8000";
 			NameTextBox.Text = "user";
+			IpTextBox.Text = "127.0.0.1";
 			rsa = new RSACng(4096);
 		}
 
 		private async void JoinButton_Click(object sender, EventArgs e)
 		{
+			button1.Enabled = false;
 			if (IPAddress.TryParse(IpTextBox.Text, out IPAddress ip))
 			{
 				clientUser = new User();
@@ -71,6 +72,9 @@ namespace Slovo
 
 					Task.Run(() => UserUpdate());
 					clientUser.SendObject(ulp);
+					ActiveControl = null;
+					HostButton.Enabled = false;
+					JoinButton.Enabled = false;
 				}
 				else
 				{
@@ -120,7 +124,7 @@ namespace Slovo
 					{
 						if (packet is MessagePacket mp)
 						{
-							Action action = () => label4.Text = Encoding.UTF8.GetString(ServerKey.CreateDecryptor().TransformFinalBlock(mp.Message, 0, mp.Message.Length));
+							Action action = () => label4.Text = Encoding.UTF8.GetString(mp.Message);
 							Invoke(action);
 						}
 						if (packet is ServerSecretPacket ssp)
@@ -131,7 +135,8 @@ namespace Slovo
 
 							BinaryFormatter formatter = new BinaryFormatter();
 							object serAes = formatter.Deserialize(memory);
-							ServerKey = ((SerializableAes)serAes).GetAes();
+							memory.Close();
+							AesEncryption.Key = ((SerializableAes)serAes).GetAes();
 						}
 					}
 				});
@@ -158,7 +163,7 @@ namespace Slovo
 			PortTextBox.ReadOnly = true;
 			PortTextBox.BackColor = Color.White;
 
-			ServerKey = new AesCng();
+			AesEncryption.Key = new AesCng();
 
 
 
@@ -197,7 +202,7 @@ namespace Slovo
 
 							BinaryFormatter formatter = new BinaryFormatter();
 							ServerSecretPacket ssp = new ServerSecretPacket();
-							SerializableAes sa = new SerializableAes(ServerKey);
+							SerializableAes sa = new SerializableAes(AesEncryption.Key);
 							using (MemoryStream stream = new MemoryStream())
 							{
 								formatter.Serialize(stream, sa);
@@ -275,10 +280,11 @@ namespace Slovo
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			var a = ServerKey.CreateEncryptor();
 			var h = Encoding.UTF8.GetBytes("Hello world!");
-			MessagePacket mp = new MessagePacket(a.TransformFinalBlock(h, 0, h.Length));
-			users[0].SendObject(mp);
+			MessagePacket mp = new MessagePacket(h);
+			byte[] res = AesEncryption.Encryption(mp);
+			label4.Text = res.Length.ToString();
+			users[0].SendObject(res);
 		}
 	}
 }
