@@ -14,9 +14,12 @@ using System.Windows.Forms;
 
 namespace Slovo
 {
+	[Serializable]
 	public class User
 	{
 		public string Nick;
+		public Guid guid;
+		[NonSerialized]
 		private Socket s;
 		public Socket socket
 		{
@@ -98,7 +101,7 @@ namespace Slovo
 			});
 		}
 
-		internal object ServerReadObject()
+		public object ServerReadObject()
 		{
 			byte[] data = new byte[socket.ReceiveBufferSize];
 
@@ -111,8 +114,16 @@ namespace Slovo
 				BinaryFormatter formatter = new BinaryFormatter();
 				object obj = formatter.Deserialize(memory);
 				memory.Close();
+
+				if (obj is byte[] byteObj)
+					obj = AesEncryption.Decryption(byteObj);
+
 				return obj;
 			}
+		}
+		public override string ToString()
+		{
+			return Nick;
 		}
 	}
 }

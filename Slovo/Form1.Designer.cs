@@ -1,4 +1,6 @@
-﻿namespace Slovo
+﻿using System.ComponentModel;
+
+namespace Slovo
 {
 	partial class Form1
 	{
@@ -36,8 +38,19 @@
 			this.JoinButton = new System.Windows.Forms.Button();
 			this.NameTextBox = new System.Windows.Forms.TextBox();
 			this.label3 = new System.Windows.Forms.Label();
+			this.ClientsList = new System.Windows.Forms.ListBox();
+			this.MessageTextBox = new System.Windows.Forms.TextBox();
+			this.SendButton = new System.Windows.Forms.Button();
+			this.AcceptButton = new System.Windows.Forms.Button();
+			this.DeclineButton = new System.Windows.Forms.Button();
+			this.WordTextBox = new System.Windows.Forms.TextBox();
+			this.pictureBox1 = new System.Windows.Forms.PictureBox();
+			this.GMComboBox = new System.Windows.Forms.ComboBox();
 			this.label4 = new System.Windows.Forms.Label();
-			this.button1 = new System.Windows.Forms.Button();
+			this.StartButton = new System.Windows.Forms.Button();
+			this.HistoryListBox = new System.Windows.Forms.ListBox();
+			this.SyncHistoryButton = new System.Windows.Forms.Button();
+			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// IpTextBox
@@ -108,32 +121,138 @@
 			this.label3.Text = "Name";
 			this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
+			// ClientsList
+			// 
+			this.ClientsList.FormattingEnabled = true;
+			this.ClientsList.Location = new System.Drawing.Point(12, 144);
+			this.ClientsList.Name = "ClientsList";
+			this.ClientsList.Size = new System.Drawing.Size(196, 290);
+			this.ClientsList.TabIndex = 9;
+			this.ClientsList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ClientsList_KeyDown);
+			// 
+			// MessageTextBox
+			// 
+			this.MessageTextBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+			this.MessageTextBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
+			this.MessageTextBox.Location = new System.Drawing.Point(214, 414);
+			this.MessageTextBox.Name = "MessageTextBox";
+			this.MessageTextBox.Size = new System.Drawing.Size(411, 20);
+			this.MessageTextBox.TabIndex = 10;
+			// 
+			// SendButton
+			// 
+			this.SendButton.Location = new System.Drawing.Point(713, 411);
+			this.SendButton.Name = "SendButton";
+			this.SendButton.Size = new System.Drawing.Size(75, 23);
+			this.SendButton.TabIndex = 11;
+			this.SendButton.Text = "Send";
+			this.SendButton.UseVisualStyleBackColor = true;
+			this.SendButton.Click += new System.EventHandler(this.SendButton_Click);
+			// 
+			// AcceptButton
+			// 
+			this.AcceptButton.Location = new System.Drawing.Point(632, 382);
+			this.AcceptButton.Name = "AcceptButton";
+			this.AcceptButton.Size = new System.Drawing.Size(75, 23);
+			this.AcceptButton.TabIndex = 12;
+			this.AcceptButton.Text = "Accept";
+			this.AcceptButton.UseVisualStyleBackColor = true;
+			// 
+			// DeclineButton
+			// 
+			this.DeclineButton.Location = new System.Drawing.Point(713, 382);
+			this.DeclineButton.Name = "DeclineButton";
+			this.DeclineButton.Size = new System.Drawing.Size(75, 23);
+			this.DeclineButton.TabIndex = 13;
+			this.DeclineButton.Text = "Decline";
+			this.DeclineButton.UseVisualStyleBackColor = true;
+			// 
+			// WordTextBox
+			// 
+			this.WordTextBox.BackColor = System.Drawing.SystemColors.Control;
+			this.WordTextBox.Location = new System.Drawing.Point(632, 356);
+			this.WordTextBox.Name = "WordTextBox";
+			this.WordTextBox.ReadOnly = true;
+			this.WordTextBox.Size = new System.Drawing.Size(156, 20);
+			this.WordTextBox.TabIndex = 14;
+			// 
+			// pictureBox1
+			// 
+			this.pictureBox1.Location = new System.Drawing.Point(632, 350);
+			this.pictureBox1.Name = "pictureBox1";
+			this.pictureBox1.Size = new System.Drawing.Size(156, 6);
+			this.pictureBox1.TabIndex = 15;
+			this.pictureBox1.TabStop = false;
+			// 
+			// GMComboBox
+			// 
+			this.GMComboBox.Enabled = false;
+			this.GMComboBox.FormattingEnabled = true;
+			this.GMComboBox.Items.AddRange(new object[] {
+            "Standard",
+            "Start at",
+            "End on"});
+			this.GMComboBox.Location = new System.Drawing.Point(632, 49);
+			this.GMComboBox.Name = "GMComboBox";
+			this.GMComboBox.Size = new System.Drawing.Size(156, 21);
+			this.GMComboBox.TabIndex = 0;
+			this.GMComboBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.GMComboBox_KeyPress);
+			// 
 			// label4
 			// 
-			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(410, 240);
+			this.label4.Location = new System.Drawing.Point(632, 33);
 			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(35, 13);
-			this.label4.TabIndex = 8;
-			this.label4.Text = "label4";
+			this.label4.Size = new System.Drawing.Size(156, 13);
+			this.label4.TabIndex = 17;
+			this.label4.Text = "Game Mode:";
+			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
-			// button1
+			// StartButton
 			// 
-			this.button1.Location = new System.Drawing.Point(395, 153);
-			this.button1.Name = "button1";
-			this.button1.Size = new System.Drawing.Size(75, 23);
-			this.button1.TabIndex = 9;
-			this.button1.Text = "test";
-			this.button1.UseVisualStyleBackColor = true;
-			this.button1.Click += new System.EventHandler(this.button1_Click);
+			this.StartButton.Enabled = false;
+			this.StartButton.Location = new System.Drawing.Point(713, 76);
+			this.StartButton.Name = "StartButton";
+			this.StartButton.Size = new System.Drawing.Size(75, 23);
+			this.StartButton.TabIndex = 18;
+			this.StartButton.Text = "Start";
+			this.StartButton.UseVisualStyleBackColor = true;
+			this.StartButton.Click += new System.EventHandler(this.StartButton_Click);
+			// 
+			// HistoryListBox
+			// 
+			this.HistoryListBox.FormattingEnabled = true;
+			this.HistoryListBox.Location = new System.Drawing.Point(214, 29);
+			this.HistoryListBox.Name = "HistoryListBox";
+			this.HistoryListBox.SelectionMode = System.Windows.Forms.SelectionMode.None;
+			this.HistoryListBox.Size = new System.Drawing.Size(411, 381);
+			this.HistoryListBox.TabIndex = 20;
+			// 
+			// SyncHistoryButton
+			// 
+			this.SyncHistoryButton.Location = new System.Drawing.Point(631, 76);
+			this.SyncHistoryButton.Name = "SyncHistoryButton";
+			this.SyncHistoryButton.Size = new System.Drawing.Size(75, 23);
+			this.SyncHistoryButton.TabIndex = 21;
+			this.SyncHistoryButton.Text = "SyncHistory";
+			this.SyncHistoryButton.UseVisualStyleBackColor = true;
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(800, 450);
-			this.Controls.Add(this.button1);
+			this.ClientSize = new System.Drawing.Size(800, 446);
+			this.Controls.Add(this.SyncHistoryButton);
+			this.Controls.Add(this.HistoryListBox);
+			this.Controls.Add(this.StartButton);
 			this.Controls.Add(this.label4);
+			this.Controls.Add(this.GMComboBox);
+			this.Controls.Add(this.pictureBox1);
+			this.Controls.Add(this.WordTextBox);
+			this.Controls.Add(this.DeclineButton);
+			this.Controls.Add(this.AcceptButton);
+			this.Controls.Add(this.SendButton);
+			this.Controls.Add(this.MessageTextBox);
+			this.Controls.Add(this.ClientsList);
 			this.Controls.Add(this.label3);
 			this.Controls.Add(this.NameTextBox);
 			this.Controls.Add(this.JoinButton);
@@ -142,10 +261,13 @@
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.PortTextBox);
 			this.Controls.Add(this.IpTextBox);
+			this.MinimumSize = new System.Drawing.Size(16, 277);
 			this.Name = "Form1";
 			this.Text = "Form1";
 			this.Load += new System.EventHandler(this.Form1_Load);
 			this.Click += new System.EventHandler(this.Form1_Click);
+			this.Resize += new System.EventHandler(this.Form1_Resize);
+			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -161,8 +283,20 @@
 		private System.Windows.Forms.Button JoinButton;
 		private System.Windows.Forms.TextBox NameTextBox;
 		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.ListBox ClientsList;
+		private System.Windows.Forms.TextBox MessageTextBox;
+		private System.Windows.Forms.Button SendButton;
+		#pragma warning disable CS0108 // Член скрывает унаследованный член: отсутствует новое ключевое слово
+		private System.Windows.Forms.Button AcceptButton;
+		#pragma warning restore CS0108 // Член скрывает унаследованный член: отсутствует новое ключевое слово
+		private System.Windows.Forms.Button DeclineButton;
+		private System.Windows.Forms.TextBox WordTextBox;
+		private System.Windows.Forms.PictureBox pictureBox1;
+		private System.Windows.Forms.ComboBox GMComboBox;
 		private System.Windows.Forms.Label label4;
-		private System.Windows.Forms.Button button1;
+		private System.Windows.Forms.Button StartButton;
+		private System.Windows.Forms.ListBox HistoryListBox;
+		private System.Windows.Forms.Button SyncHistoryButton;
 	}
 }
 
