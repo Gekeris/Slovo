@@ -50,6 +50,9 @@ namespace Slovo
 			this.StartButton = new System.Windows.Forms.Button();
 			this.HistoryListBox = new System.Windows.Forms.ListBox();
 			this.SyncHistoryButton = new System.Windows.Forms.Button();
+			this.AutoAcceptCheckBox = new System.Windows.Forms.CheckBox();
+			this.RetryButton = new System.Windows.Forms.Button();
+			this.TemplateTextBox = new System.Windows.Forms.TextBox();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -141,7 +144,8 @@ namespace Slovo
 			// 
 			// SendButton
 			// 
-			this.SendButton.Location = new System.Drawing.Point(713, 411);
+			this.SendButton.Enabled = false;
+			this.SendButton.Location = new System.Drawing.Point(714, 412);
 			this.SendButton.Name = "SendButton";
 			this.SendButton.Size = new System.Drawing.Size(75, 23);
 			this.SendButton.TabIndex = 11;
@@ -151,21 +155,25 @@ namespace Slovo
 			// 
 			// AcceptButton
 			// 
-			this.AcceptButton.Location = new System.Drawing.Point(632, 382);
+			this.AcceptButton.Enabled = false;
+			this.AcceptButton.Location = new System.Drawing.Point(631, 382);
 			this.AcceptButton.Name = "AcceptButton";
 			this.AcceptButton.Size = new System.Drawing.Size(75, 23);
 			this.AcceptButton.TabIndex = 12;
 			this.AcceptButton.Text = "Accept";
 			this.AcceptButton.UseVisualStyleBackColor = true;
+			this.AcceptButton.Click += new System.EventHandler(this.AcceptButton_Click);
 			// 
 			// DeclineButton
 			// 
-			this.DeclineButton.Location = new System.Drawing.Point(713, 382);
+			this.DeclineButton.Enabled = false;
+			this.DeclineButton.Location = new System.Drawing.Point(714, 382);
 			this.DeclineButton.Name = "DeclineButton";
 			this.DeclineButton.Size = new System.Drawing.Size(75, 23);
 			this.DeclineButton.TabIndex = 13;
 			this.DeclineButton.Text = "Decline";
 			this.DeclineButton.UseVisualStyleBackColor = true;
+			this.DeclineButton.Click += new System.EventHandler(this.DeclineButton_Click);
 			// 
 			// WordTextBox
 			// 
@@ -196,6 +204,7 @@ namespace Slovo
 			this.GMComboBox.Name = "GMComboBox";
 			this.GMComboBox.Size = new System.Drawing.Size(156, 21);
 			this.GMComboBox.TabIndex = 0;
+			this.GMComboBox.SelectedIndexChanged += new System.EventHandler(this.GMComboBox_SelectedIndexChanged);
 			this.GMComboBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.GMComboBox_KeyPress);
 			// 
 			// label4
@@ -210,7 +219,7 @@ namespace Slovo
 			// StartButton
 			// 
 			this.StartButton.Enabled = false;
-			this.StartButton.Location = new System.Drawing.Point(713, 76);
+			this.StartButton.Location = new System.Drawing.Point(714, 102);
 			this.StartButton.Name = "StartButton";
 			this.StartButton.Size = new System.Drawing.Size(75, 23);
 			this.StartButton.TabIndex = 18;
@@ -229,18 +238,51 @@ namespace Slovo
 			// 
 			// SyncHistoryButton
 			// 
-			this.SyncHistoryButton.Location = new System.Drawing.Point(631, 76);
+			this.SyncHistoryButton.Enabled = false;
+			this.SyncHistoryButton.Location = new System.Drawing.Point(631, 102);
 			this.SyncHistoryButton.Name = "SyncHistoryButton";
 			this.SyncHistoryButton.Size = new System.Drawing.Size(75, 23);
 			this.SyncHistoryButton.TabIndex = 21;
 			this.SyncHistoryButton.Text = "SyncHistory";
 			this.SyncHistoryButton.UseVisualStyleBackColor = true;
+			this.SyncHistoryButton.Click += new System.EventHandler(this.SyncHistoryButton_Click);
+			// 
+			// AutoAcceptCheckBox
+			// 
+			this.AutoAcceptCheckBox.AutoSize = true;
+			this.AutoAcceptCheckBox.Enabled = false;
+			this.AutoAcceptCheckBox.Location = new System.Drawing.Point(632, 327);
+			this.AutoAcceptCheckBox.Name = "AutoAcceptCheckBox";
+			this.AutoAcceptCheckBox.Size = new System.Drawing.Size(85, 17);
+			this.AutoAcceptCheckBox.TabIndex = 22;
+			this.AutoAcceptCheckBox.Text = "Auto Aceept";
+			this.AutoAcceptCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// RetryButton
+			// 
+			this.RetryButton.Location = new System.Drawing.Point(631, 411);
+			this.RetryButton.Name = "RetryButton";
+			this.RetryButton.Size = new System.Drawing.Size(75, 23);
+			this.RetryButton.TabIndex = 23;
+			this.RetryButton.Text = "Retry";
+			this.RetryButton.UseVisualStyleBackColor = true;
+			this.RetryButton.Click += new System.EventHandler(this.RetryButton_Click);
+			// 
+			// TemplateTextBox
+			// 
+			this.TemplateTextBox.Location = new System.Drawing.Point(632, 76);
+			this.TemplateTextBox.Name = "TemplateTextBox";
+			this.TemplateTextBox.Size = new System.Drawing.Size(156, 20);
+			this.TemplateTextBox.TabIndex = 24;
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 446);
+			this.Controls.Add(this.TemplateTextBox);
+			this.Controls.Add(this.RetryButton);
+			this.Controls.Add(this.AutoAcceptCheckBox);
 			this.Controls.Add(this.SyncHistoryButton);
 			this.Controls.Add(this.HistoryListBox);
 			this.Controls.Add(this.StartButton);
@@ -286,9 +328,7 @@ namespace Slovo
 		private System.Windows.Forms.ListBox ClientsList;
 		private System.Windows.Forms.TextBox MessageTextBox;
 		private System.Windows.Forms.Button SendButton;
-		#pragma warning disable CS0108 // Член скрывает унаследованный член: отсутствует новое ключевое слово
 		private System.Windows.Forms.Button AcceptButton;
-		#pragma warning restore CS0108 // Член скрывает унаследованный член: отсутствует новое ключевое слово
 		private System.Windows.Forms.Button DeclineButton;
 		private System.Windows.Forms.TextBox WordTextBox;
 		private System.Windows.Forms.PictureBox pictureBox1;
@@ -297,6 +337,9 @@ namespace Slovo
 		private System.Windows.Forms.Button StartButton;
 		private System.Windows.Forms.ListBox HistoryListBox;
 		private System.Windows.Forms.Button SyncHistoryButton;
+		private System.Windows.Forms.CheckBox AutoAcceptCheckBox;
+		private System.Windows.Forms.Button RetryButton;
+		private System.Windows.Forms.TextBox TemplateTextBox;
 	}
 }
 

@@ -45,80 +45,6 @@ namespace Slovo
 			rsa = new RSACng(4096);
 		}
 
-		private async void JoinButton_Click(object sender, EventArgs e)
-		{
-			IAmServer = false;
-			if (IPAddress.TryParse(IpTextBox.Text, out IPAddress ip))
-			{
-				localUser = new User();
-				localUser.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-				localUser.socket.Connect(ip, int.Parse(PortTextBox.Text));
-
-				string ServerResult = "";
-
-				await Task.Run(() =>
-				{
-					using (Stream s = new NetworkStream(localUser.socket))
-					{
-						StreamReader reader = new StreamReader(s);
-						s.ReadTimeout = 60000;
-
-						ServerResult = reader.ReadLine();
-					}
-				});
-
-				if (ServerResult == "True")
-				{
-					UserLoginPacket ulp = new UserLoginPacket
-					{
-						Nick = NameTextBox.Text,
-						OpenSecret = rsa.ToXmlString(false)
-					};
-
-					#pragma warning disable CS4014
-					Task.Run(() => UserUpdate());
-					#pragma warning restore CS4014
-					localUser.SendObject(ulp);
-					ActiveControl = null;
-					HostButton.Enabled = false;
-					JoinButton.Enabled = false;
-				}
-				else
-				{
-					localUser = null;
-				}
-			}
-			else
-			{
-				await Task.Run(() =>
-				{
-					int i = 0;
-					Action change = () =>
-					{
-						label1.Font = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
-						label1.ForeColor = Color.Red;
-					};
-					Action move = () =>
-					{
-						label1.Location = new Point(label1.Location.X + Convert.ToInt32(Math.Sin(i)), label1.Location.Y);
-					};
-					Action back = () =>
-					{
-						label1.Font = new Font("Microsoft Sans Serif", 8.25f);
-						label1.Location = new Point(6, 60);
-						label1.ForeColor = Color.Black;
-					};
-					Invoke(change);
-					for (i = 0; i < 20; i++)
-					{
-						Invoke(move);
-						Thread.Sleep(40);
-					}
-					Invoke(back);
-				});
-			}
-		}
-
 		private async Task UserUpdate()
 		{
 			while (true)
@@ -131,20 +57,35 @@ namespace Slovo
 					{
 						if (packet is MessagePacket mp)
 						{
-							HistoryListBox.Items.Add(mp);
-							MessageTextBox.AutoCompleteCustomSource.Add($"{mp.Word} [{mp.Res} by {mp.User}]");
+							Action action = () =>
+							{
+								HistoryListBox.Items.Add(mp);
+								MessageTextBox.AutoCompleteCustomSource.Add(mp.ToAutoComplete());
+								if (!HistoryDict.ContainsKey(mp.Word))
+									HistoryDict.Add(mp.Word, mp);
+							};
+							Invoke(action);
+							SendButtonCheck();
 						}
 						else if (packet is QuestionPacket qup)
 						{
-							WordTextBox.Text = qup.Word;
-							Bitmap bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-							Graphics g = Graphics.FromImage(bmp);
-							if (qup.BColor)
-								g.Clear(Color.FromArgb(0, 255, 0));
-							else
-								g.Clear(Color.FromArgb(255, 0, 0));
+							Action action = () =>
+							{
+								AcceptButton.Enabled = true;
+								DeclineButton.Enabled = true;
+								WordTextBox.Text = qup.Word;
+								Bitmap bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+								Graphics g = Graphics.FromImage(bmp);
+								if (qup.BColor)
+									g.Clear(Color.FromArgb(0, 255, 0));
+								else
+									g.Clear(Color.FromArgb(255, 0, 0));
 
-							pictureBox1.Image = bmp;
+								pictureBox1.Image = bmp;
+								if (AutoAcceptCheckBox.Checked)
+									AcceptButton_Click(null, null);
+							};
+							Invoke(action);
 						}
 						else if (packet is QueuePacket qp)
 						{
@@ -158,13 +99,12 @@ namespace Slovo
 						}
 						else if(packet is StartPacket sp)
 						{
-							GameStarted = true;
 							Action action = () =>
 							{
 								StartButton_Click(null, null);
 								GMComboBox.SelectedIndex = sp.GameMode;
 								GMComboBox.Enabled = false;
-								StartButton.Enabled = false;
+								TemplateTextBox.Text = sp.Template;
 							};
 							Invoke(action);
 							SendButtonCheck();
@@ -180,6 +120,34 @@ namespace Slovo
 							object serAes = formatter.Deserialize(memory);
 							memory.Close();
 							AesEncryption.Key = ((SerializableAes)serAes).GetAes();
+
+							if (ssp.GameRun)
+							{
+								//Action action = () =>
+								//{
+								//	StartButton_Click(null, null);
+								//	GMComboBox.SelectedIndex = ssp.sp.GameMode;
+								//	GMComboBox.Enabled = false;
+								//	TemplateTextBox.Text = ssp.sp.Template;
+								//};
+								//Invoke(action);
+							}
+						}
+						else if (packet is HistoryPacket hp)
+						{
+							Action action = () =>
+							{
+								HistoryDict = new Dictionary<string, MessagePacket>();
+								MessageTextBox.AutoCompleteCustomSource = new AutoCompleteStringCollection();
+								HistoryListBox.Items.Clear();
+								foreach (MessagePacket mpa in hp.messagePackets)
+								{
+									HistoryDict.Add(mpa.Word, mpa);
+									MessageTextBox.AutoCompleteCustomSource.Add(mpa.ToAutoComplete());
+									HistoryListBox.Items.Add(mpa);
+								}
+							};
+							Invoke(action);
 						}
 						else
 						{
@@ -223,47 +191,6 @@ namespace Slovo
 			});
 		}
 
-		private async void HostButton_Click(object sender, EventArgs e)
-		{
-			IAmServer = true;
-			ActiveControl = null;
-			HostButton.Enabled = false;
-			JoinButton.Enabled = false;
-			label4.Enabled = true;
-			GMComboBox.Enabled = true;
-			StartButton.Enabled = true;
-
-			NameTextBox.ReadOnly = true;
-			NameTextBox.BackColor = Color.White;
-			localUser = new User();
-			localUser.Nick = NameTextBox.Text + "@HOST";
-			ClientsList.Items.Add(localUser);
-
-			using (WebClient wc = new WebClient())
-				IpTextBox.Text = wc.DownloadString("https://api.myip.com/").Split('\"')[3];
-			IpTextBox.ReadOnly = true;
-			IpTextBox.BackColor = Color.White;
-
-			if (PortTextBox.Text == "")
-				PortTextBox.Text = "8000";
-			PortTextBox.ReadOnly = true;
-			PortTextBox.BackColor = Color.White;
-
-			AesEncryption.Key = new AesCng();
-
-
-
-			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			socket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(PortTextBox.Text)));
-			socket.Listen(10);
-			socket.ReceiveTimeout = 10000;
-			users = new List<User>();
-
-			ServerListen(socket);
-			await Task.Run(() => ServerMonitor());
-			socket.Close();
-		}
-
 		private Task ServerMonitor()
 		{
 			while (true)
@@ -279,6 +206,7 @@ namespace Slovo
 							ClientsList.Items.Remove(user);
 						};
 						Invoke(action);
+						ServerSendAllUsersPacket(new QueuePacket(ClientsList.Items));
 						continue;
 					}
 
@@ -288,12 +216,38 @@ namespace Slovo
 
 						if (obj is MessagePacket mp)
 						{
-							mp.Nick = user.Nick;
-							mp.User = ((User) ClientsList.Items[1]).Nick;
-							((User) ClientsList.Items[1]).SendObject(AesEncryption.Encryption(new QuestionPacket(mp.Word, HistoryDict.ContainsKey(mp.Word))));
-							string asd = ((User) ClientsList.Items[1]).RecieveObject().ToString();
-							mp.Res = ((User) ClientsList.Items[1]).RecieveObject().ToString();
-							var a = 1;
+							mp.Nick = ((User) ClientsList.Items[0]).Nick;
+							mp.Referee = ((User) ClientsList.Items[1]).Nick;
+
+							ServerSendAllUsersMessage(mp, mp.Res == "Accepted");
+							SendButtonCheck();
+						}
+						else if (obj is QuestionPacket qp)
+						{
+							qp.BColor = !HistoryDict.ContainsKey(qp.Word);
+							if (((User) ClientsList.Items[1]).guid == localUser.guid)
+							{
+								Action action = () =>
+								{
+									AcceptButton.Enabled = true;
+									DeclineButton.Enabled = true;
+									WordTextBox.Text = qp.Word;
+
+									Bitmap bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+									Graphics g = Graphics.FromImage(bmp);
+									if (qp.BColor)
+										g.Clear(Color.FromArgb(0, 255, 0));
+									else
+										g.Clear(Color.FromArgb(255, 0, 0));
+									pictureBox1.Image = bmp;
+
+									if (AutoAcceptCheckBox.Checked)
+										AcceptButton_Click(null, null);
+								};
+								Invoke(action);
+							}
+							else
+								((User) ClientsList.Items[1]).SendObject(AesEncryption.Encryption(qp));
 						}
 						else if (obj is UserLoginPacket ulp)
 						{
@@ -309,22 +263,51 @@ namespace Slovo
 								formatter.Serialize(stream, sa);
 								ssp.Secret = rsa.Encrypt(stream.ToArray(), RSAEncryptionPadding.OaepSHA256);
 								ssp.guid = user.guid;
+								ssp.GameRun = GameStarted;
 							}
 							Action action = () =>
 							{
 								ClientsList.Items.Add(user);
+								ssp.sp = new StartPacket(GMComboBox.SelectedIndex, TemplateTextBox.Text);
 							};
 							Invoke(action);
 							user.SendObject(ssp);
-							Thread.Sleep(500);
+							Thread.Sleep(10);
 							ServerSendAllUsersPacket(new QueuePacket(ClientsList.Items));
 						}
+						else if (obj is HistoryPacket hp)
+							user.SendObject(AesEncryption.Encryption(new HistoryPacket(HistoryListBox.Items)));
 						else
 						{
 							throw new Exception("Server: New Packet " + obj.GetType());
 						}
 					}
 				}
+			}
+		}
+
+		private void ServerSendAllUsersMessage(MessagePacket mp, bool append)
+		{
+			ServerSendAllUsersPacket(mp);
+
+			Action action = () =>
+			{
+				if (!HistoryDict.ContainsKey(mp.Word))
+					HistoryDict.Add(mp.Word, mp);
+				MessageTextBox.AutoCompleteCustomSource.Add(mp.ToAutoComplete());
+				HistoryListBox.Items.Add(mp);
+				if (append)
+				{
+					ClientsList.Items.Add(ClientsList.Items[0]);
+					ClientsList.Items.RemoveAt(0);
+				}
+			};
+			Invoke(action);
+			if (append)
+			{
+				Thread.Sleep(100);
+				ServerSendAllUsersPacket(new QueuePacket(ClientsList.Items));
+				SendButtonCheck();
 			}
 		}
 
@@ -374,6 +357,210 @@ namespace Slovo
 					user.SendObject(encrypted);
 				}
 			});
+		}
+
+		private void SendButtonCheck()
+		{
+			Action action = () =>
+			{
+				if ((ClientsList.Items.Count > 0) && (((User) ClientsList.Items[0]).guid == localUser.guid) && GameStarted)
+					SendButton.Enabled = true;
+				else
+					SendButton.Enabled = false;
+			};
+			Invoke(action);
+		}
+
+		private async void JoinButton_Click(object sender, EventArgs e)
+		{
+			IAmServer = false;
+			HostButton.Enabled = false;
+			JoinButton.Enabled = false;
+			if (IPAddress.TryParse(IpTextBox.Text, out IPAddress ip))
+			{
+				localUser = new User();
+				localUser.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+				localUser.socket.Connect(ip, int.Parse(PortTextBox.Text));
+
+				string ServerResult = "";
+
+				await Task.Run(() =>
+				{
+					using (Stream s = new NetworkStream(localUser.socket))
+					{
+						StreamReader reader = new StreamReader(s);
+						s.ReadTimeout = 60000;
+
+						ServerResult = reader.ReadLine();
+					}
+				});
+
+				if (ServerResult == "True")
+				{
+					UserLoginPacket ulp = new UserLoginPacket
+					{
+						Nick = NameTextBox.Text,
+						OpenSecret = rsa.ToXmlString(false)
+					};
+
+					Task.Run(() => UserUpdate());
+
+					localUser.SendObject(ulp);
+					ActiveControl = null;
+				}
+				else
+				{
+					localUser = null;
+					HostButton.Enabled = true;
+					JoinButton.Enabled = true;
+				}
+			}
+			else
+			{
+				await Task.Run(() =>
+				{
+					int i = 0;
+					Action change = () =>
+					{
+						label1.Font = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
+						label1.ForeColor = Color.Red;
+					};
+					Action move = () =>
+					{
+						label1.Location = new Point(label1.Location.X + Convert.ToInt32(Math.Sin(i)), label1.Location.Y);
+					};
+					Action back = () =>
+					{
+						label1.Font = new Font("Microsoft Sans Serif", 8.25f);
+						label1.Location = new Point(6, 60);
+						label1.ForeColor = Color.Black;
+					};
+					Invoke(change);
+					for (i = 0; i < 20; i++)
+					{
+						Invoke(move);
+						Thread.Sleep(40);
+					}
+					Invoke(back);
+				});
+			}
+		}
+
+		private async void HostButton_Click(object sender, EventArgs e)
+		{
+			IAmServer = true;
+			ActiveControl = null;
+			HostButton.Enabled = false;
+			JoinButton.Enabled = false;
+			label4.Enabled = true;
+			GMComboBox.Enabled = true;
+			StartButton.Enabled = true;
+
+			NameTextBox.ReadOnly = true;
+			NameTextBox.BackColor = Color.White;
+			localUser = new User();
+			localUser.Nick = NameTextBox.Text + "@HOST";
+			ClientsList.Items.Add(localUser);
+
+			using (WebClient wc = new WebClient())
+				IpTextBox.Text = wc.DownloadString("https://api.myip.com/").Split('\"')[3];
+			IpTextBox.ReadOnly = true;
+			IpTextBox.BackColor = Color.White;
+
+			if (PortTextBox.Text == "")
+				PortTextBox.Text = "8000";
+			PortTextBox.ReadOnly = true;
+			PortTextBox.BackColor = Color.White;
+
+			AesEncryption.Key = new AesCng();
+
+
+
+			Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			socket.Bind(new IPEndPoint(IPAddress.Any, int.Parse(PortTextBox.Text)));
+			socket.Listen(10);
+			socket.ReceiveTimeout = 10000;
+			users = new List<User>();
+
+			ServerListen(socket);
+			await Task.Run(() => ServerMonitor());
+			socket.Close();
+		}
+
+		private void SendButton_Click(object sender, EventArgs e)
+		{
+			bool find = false;
+			bool correct = false;
+			if (HistoryListBox.Items.Count > 0)
+			{
+				if (GMComboBox.SelectedIndex == 0)
+				{
+					for (int i = HistoryListBox.Items.Count - 1; i >= 0; i--)
+					{
+						if (((MessagePacket) HistoryListBox.Items[i]).Res == "Accepted")
+						{
+							find = true;
+							string word = ((MessagePacket) HistoryListBox.Items[i]).Word;
+							if (char.ToLower(MessageTextBox.Text.ToCharArray()[0]) == char.ToLower(word.ToCharArray()[word.Length - 1]))
+								correct = true;
+							break;
+						}
+					}
+				}
+				else if (GMComboBox.SelectedIndex == 1)
+					correct = MessageTextBox.Text.StartsWith(TemplateTextBox.Text);
+				else
+					correct = MessageTextBox.Text.EndsWith(TemplateTextBox.Text);
+			}
+
+
+			if (correct || (!find && (GMComboBox.SelectedIndex == 0)))
+			{
+				if (!IAmServer)
+					localUser.SendObject(AesEncryption.Encryption(new QuestionPacket(MessageTextBox.Text)));
+				else
+					((User) ClientsList.Items[1]).SendObject(AesEncryption.Encryption(new QuestionPacket(MessageTextBox.Text, !HistoryDict.ContainsKey(MessageTextBox.Text))));
+				MessageTextBox.Text = "";
+				label1.Text = "true";
+			}
+			else
+			{
+				label1.Text = "false";
+			}
+		}
+
+		private void AcceptButton_Click(object sender, EventArgs e)
+		{
+			if (!IAmServer)
+				localUser.SendObject(AesEncryption.Encryption(new MessagePacket(WordTextBox.Text, true)));
+			else
+			{
+				MessagePacket mp = new MessagePacket(WordTextBox.Text, true);
+				mp.Nick = ((User) ClientsList.Items[0]).Nick;
+				mp.Referee = localUser.Nick;
+				ServerSendAllUsersMessage(mp, true);
+			}
+			AcceptButton.Enabled = false;
+			DeclineButton.Enabled = false;
+			WordTextBox.Text = "";
+			pictureBox1.Image = null;
+		}
+
+		private void DeclineButton_Click(object sender, EventArgs e)
+		{
+			if (!IAmServer)
+				localUser.SendObject(AesEncryption.Encryption(new MessagePacket(WordTextBox.Text, false)));
+			else
+			{
+				MessagePacket mp = new MessagePacket(WordTextBox.Text, false);
+				mp.Nick = ((User) ClientsList.Items[0]).Nick;
+				mp.Referee = localUser.Nick;
+				ServerSendAllUsersMessage(mp, false);
+			}
+			AcceptButton.Enabled = false;
+			DeclineButton.Enabled = false;
+			WordTextBox.Text = "";
+			pictureBox1.Image = null;
 		}
 
 		private void PortTextBox_KeyPress(object sender, KeyPressEventArgs e)
@@ -439,37 +626,40 @@ namespace Slovo
 			ClientsList.Height = Height - 194;
 		}
 
-
-
 		private void StartButton_Click(object sender, EventArgs e)
 		{
-			HistoryListBox.Items.Clear();
-			MessageTextBox.Text = "";
-			WordTextBox.Text = "";
-
-			if (IAmServer)
+			if (ClientsList.Items.Count > 1)
 			{
-				StartButton.Text = "Restart";
+				GMComboBox.Enabled = false;
+				StartButton.Enabled = false;
+				TemplateTextBox.ReadOnly = true;
+				TemplateTextBox.BackColor = Color.White;
+				AutoAcceptCheckBox.Enabled = true;
+				GameStarted = true;
+				SyncHistoryButton.Enabled = true;
+				SendButtonCheck();
 
-				ServerSendAllUsersPacket(new StartPacket(GMComboBox.SelectedIndex));
+				if (IAmServer)
+					ServerSendAllUsersPacket(new StartPacket(GMComboBox.SelectedIndex, TemplateTextBox.Text));
 			}
 		}
 
-		private void SendButtonCheck()
+		private void SyncHistoryButton_Click(object sender, EventArgs e)
 		{
-			Action action = () =>
-			{
-				if ((ClientsList.Items.Count > 0) && (((User) ClientsList.Items[0]).guid == localUser.guid) && GameStarted)
-					SendButton.Enabled = true;
-				else
-					SendButton.Enabled = false;
-			};
-			Invoke(action);
+			if (IAmServer)
+				ServerSendAllUsersPacket(new HistoryPacket(HistoryListBox.Items));
+			else
+				localUser.SendObject(new HistoryPacket());
 		}
 
-		private void SendButton_Click(object sender, EventArgs e)
+		private void RetryButton_Click(object sender, EventArgs e)
 		{
-			localUser.SendObject(AesEncryption.Encryption(new MessagePacket(MessageTextBox.Text)));
+			System.Diagnostics.Process.Start("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+		}
+
+		private void GMComboBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			TemplateTextBox.Enabled = GMComboBox.SelectedIndex != 0;
 		}
 	}
 }

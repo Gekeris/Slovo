@@ -20,6 +20,8 @@ namespace Slovo
 	{
 		public byte[] Secret;
 		public Guid guid;
+		public bool GameRun;
+		public StartPacket sp;
 	}
 	
 	[Serializable]
@@ -27,6 +29,11 @@ namespace Slovo
 	{
 		public string Word;
 		public bool BColor;
+
+		public QuestionPacket(string word)
+		{
+			Word = word;
+		}
 
 		public QuestionPacket(string word, bool bColor)
 		{
@@ -41,36 +48,21 @@ namespace Slovo
 	{
 		public string Nick;
 		public string Word;
-		private string res;
-		public string Res
-		{
-			get
-			{
-				return res;
-			}
-			set
-			{
-				res = bool.Parse(value) ? "Accepted" : "Declined";
-			}
-		}
-		public string User;
+		public string Res;
+		public string Referee;
 
-		public MessagePacket(string word)
+		public MessagePacket(string word, bool res)
 		{
 			Word = word;
+			Res = res ? "Accepted" : "Declined";
 		}
-
-		public MessagePacket(string nick, string word, bool res, string user)
+		public string ToAutoComplete()
 		{
-			Nick = nick;
-			Word = word;
-			Res = res.ToString();
-			User = user;
+			return $"{Word} - {Nick} [{Res} by {Referee}]";
 		}
-
 		public override string ToString()
 		{
-			return $"{Nick}: {Word} [{Res} by {User}]";
+			return $"{Nick}: {Word} [{Res} by {Referee}]";
 		}
 	}
 
@@ -91,10 +83,29 @@ namespace Slovo
 	class StartPacket
 	{
 		public int GameMode;
+		public string Template;
 
-		public StartPacket(int gamemode)
+		public StartPacket(int gamemode, string template)
 		{
 			GameMode = gamemode;
+			Template = template;
+		}
+	}
+
+	[Serializable]
+	class HistoryPacket
+	{
+		public MessagePacket[] messagePackets;
+
+		public HistoryPacket()
+		{
+		}
+
+		public HistoryPacket(ListBox.ObjectCollection items)
+		{
+			messagePackets = new MessagePacket[items.Count];
+			for(int i = 0; i < items.Count; i++)
+				messagePackets[i] = (MessagePacket)items[i];
 		}
 	}
 }
