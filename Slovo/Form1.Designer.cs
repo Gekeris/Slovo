@@ -127,7 +127,7 @@ namespace Slovo
 			// ClientsList
 			// 
 			this.ClientsList.FormattingEnabled = true;
-			this.ClientsList.Location = new System.Drawing.Point(12, 144);
+			this.ClientsList.Location = new System.Drawing.Point(12, 146);
 			this.ClientsList.Name = "ClientsList";
 			this.ClientsList.Size = new System.Drawing.Size(196, 290);
 			this.ClientsList.TabIndex = 9;
@@ -137,17 +137,19 @@ namespace Slovo
 			// 
 			this.MessageTextBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
 			this.MessageTextBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-			this.MessageTextBox.Location = new System.Drawing.Point(214, 414);
+			this.MessageTextBox.Location = new System.Drawing.Point(214, 416);
 			this.MessageTextBox.Name = "MessageTextBox";
 			this.MessageTextBox.Size = new System.Drawing.Size(411, 20);
 			this.MessageTextBox.TabIndex = 10;
+			this.MessageTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MessageTextBox_KeyDown);
+			this.MessageTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MessageTextBox_KeyPress);
 			// 
 			// SendButton
 			// 
 			this.SendButton.Enabled = false;
-			this.SendButton.Location = new System.Drawing.Point(714, 412);
+			this.SendButton.Location = new System.Drawing.Point(714, 415);
 			this.SendButton.Name = "SendButton";
-			this.SendButton.Size = new System.Drawing.Size(75, 23);
+			this.SendButton.Size = new System.Drawing.Size(75, 22);
 			this.SendButton.TabIndex = 11;
 			this.SendButton.Text = "Send";
 			this.SendButton.UseVisualStyleBackColor = true;
@@ -156,9 +158,9 @@ namespace Slovo
 			// AcceptButton
 			// 
 			this.AcceptButton.Enabled = false;
-			this.AcceptButton.Location = new System.Drawing.Point(631, 382);
+			this.AcceptButton.Location = new System.Drawing.Point(631, 386);
 			this.AcceptButton.Name = "AcceptButton";
-			this.AcceptButton.Size = new System.Drawing.Size(75, 23);
+			this.AcceptButton.Size = new System.Drawing.Size(75, 22);
 			this.AcceptButton.TabIndex = 12;
 			this.AcceptButton.Text = "Accept";
 			this.AcceptButton.UseVisualStyleBackColor = true;
@@ -167,9 +169,9 @@ namespace Slovo
 			// DeclineButton
 			// 
 			this.DeclineButton.Enabled = false;
-			this.DeclineButton.Location = new System.Drawing.Point(714, 382);
+			this.DeclineButton.Location = new System.Drawing.Point(714, 386);
 			this.DeclineButton.Name = "DeclineButton";
-			this.DeclineButton.Size = new System.Drawing.Size(75, 23);
+			this.DeclineButton.Size = new System.Drawing.Size(75, 22);
 			this.DeclineButton.TabIndex = 13;
 			this.DeclineButton.Text = "Decline";
 			this.DeclineButton.UseVisualStyleBackColor = true;
@@ -178,7 +180,7 @@ namespace Slovo
 			// WordTextBox
 			// 
 			this.WordTextBox.BackColor = System.Drawing.SystemColors.Control;
-			this.WordTextBox.Location = new System.Drawing.Point(632, 356);
+			this.WordTextBox.Location = new System.Drawing.Point(632, 359);
 			this.WordTextBox.Name = "WordTextBox";
 			this.WordTextBox.ReadOnly = true;
 			this.WordTextBox.Size = new System.Drawing.Size(156, 20);
@@ -186,7 +188,7 @@ namespace Slovo
 			// 
 			// pictureBox1
 			// 
-			this.pictureBox1.Location = new System.Drawing.Point(632, 350);
+			this.pictureBox1.Location = new System.Drawing.Point(632, 353);
 			this.pictureBox1.Name = "pictureBox1";
 			this.pictureBox1.Size = new System.Drawing.Size(156, 6);
 			this.pictureBox1.TabIndex = 15;
@@ -251,18 +253,18 @@ namespace Slovo
 			// 
 			this.AutoAcceptCheckBox.AutoSize = true;
 			this.AutoAcceptCheckBox.Enabled = false;
-			this.AutoAcceptCheckBox.Location = new System.Drawing.Point(632, 327);
+			this.AutoAcceptCheckBox.Location = new System.Drawing.Point(632, 330);
 			this.AutoAcceptCheckBox.Name = "AutoAcceptCheckBox";
 			this.AutoAcceptCheckBox.Size = new System.Drawing.Size(85, 17);
 			this.AutoAcceptCheckBox.TabIndex = 22;
-			this.AutoAcceptCheckBox.Text = "Auto Aceept";
+			this.AutoAcceptCheckBox.Text = "Auto Accept";
 			this.AutoAcceptCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// RetryButton
 			// 
-			this.RetryButton.Location = new System.Drawing.Point(631, 411);
+			this.RetryButton.Location = new System.Drawing.Point(631, 415);
 			this.RetryButton.Name = "RetryButton";
-			this.RetryButton.Size = new System.Drawing.Size(75, 23);
+			this.RetryButton.Size = new System.Drawing.Size(75, 22);
 			this.RetryButton.TabIndex = 23;
 			this.RetryButton.Text = "Retry";
 			this.RetryButton.UseVisualStyleBackColor = true;
@@ -303,12 +305,12 @@ namespace Slovo
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.PortTextBox);
 			this.Controls.Add(this.IpTextBox);
-			this.MinimumSize = new System.Drawing.Size(16, 277);
+			this.MaximumSize = new System.Drawing.Size(816, 485);
+			this.MinimumSize = new System.Drawing.Size(816, 485);
 			this.Name = "Form1";
 			this.Text = "Form1";
 			this.Load += new System.EventHandler(this.Form1_Load);
 			this.Click += new System.EventHandler(this.Form1_Click);
-			this.Resize += new System.EventHandler(this.Form1_Resize);
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();

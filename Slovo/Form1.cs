@@ -123,14 +123,18 @@ namespace Slovo
 
 							if (ssp.GameRun)
 							{
-								//Action action = () =>
-								//{
-								//	StartButton_Click(null, null);
-								//	GMComboBox.SelectedIndex = ssp.sp.GameMode;
-								//	GMComboBox.Enabled = false;
-								//	TemplateTextBox.Text = ssp.sp.Template;
-								//};
-								//Invoke(action);
+								Action action = () =>
+								{
+									GMComboBox.Enabled = false;
+									StartButton.Enabled = false;
+									TemplateTextBox.ReadOnly = true;
+									TemplateTextBox.BackColor = Color.White;
+									AutoAcceptCheckBox.Enabled = true;
+									GameStarted = true;
+									SyncHistoryButton.Enabled = true;
+									SendButtonCheck();
+								};
+								Invoke(action);
 							}
 						}
 						else if (packet is HistoryPacket hp)
@@ -268,7 +272,6 @@ namespace Slovo
 							Action action = () =>
 							{
 								ClientsList.Items.Add(user);
-								ssp.sp = new StartPacket(GMComboBox.SelectedIndex, TemplateTextBox.Text);
 							};
 							Invoke(action);
 							user.SendObject(ssp);
@@ -487,45 +490,70 @@ namespace Slovo
 			socket.Close();
 		}
 
-		private void SendButton_Click(object sender, EventArgs e)
+		private async void SendButton_Click(object sender, EventArgs e)
 		{
+			bool sent = false;
 			bool find = false;
 			bool correct = false;
-			if (HistoryListBox.Items.Count > 0)
+			if ((GMComboBox.SelectedIndex == 0) && (HistoryListBox.Items.Count > 0))
 			{
-				if (GMComboBox.SelectedIndex == 0)
+				for (int i = HistoryListBox.Items.Count - 1; i >= 0; i--)
 				{
-					for (int i = HistoryListBox.Items.Count - 1; i >= 0; i--)
+					if (((MessagePacket) HistoryListBox.Items[i]).Res == "Accepted")
 					{
-						if (((MessagePacket) HistoryListBox.Items[i]).Res == "Accepted")
-						{
-							find = true;
-							string word = ((MessagePacket) HistoryListBox.Items[i]).Word;
-							if (char.ToLower(MessageTextBox.Text.ToCharArray()[0]) == char.ToLower(word.ToCharArray()[word.Length - 1]))
-								correct = true;
-							break;
-						}
+						find = true;
+						string word = ((MessagePacket) HistoryListBox.Items[i]).Word;
+						if (char.ToLower(MessageTextBox.Text.ToCharArray()[0]) == char.ToLower(word.ToCharArray()[word.Length - 1]))
+							correct = true;
+						break;
 					}
 				}
-				else if (GMComboBox.SelectedIndex == 1)
-					correct = MessageTextBox.Text.StartsWith(TemplateTextBox.Text);
-				else
-					correct = MessageTextBox.Text.EndsWith(TemplateTextBox.Text);
 			}
+			else if (GMComboBox.SelectedIndex == 1)
+				correct = MessageTextBox.Text.StartsWith(TemplateTextBox.Text);
+			else if (GMComboBox.SelectedIndex == 2)
+				correct = MessageTextBox.Text.EndsWith(TemplateTextBox.Text);
 
 
-			if (correct || (!find && (GMComboBox.SelectedIndex == 0)))
+			if ((MessageTextBox.TextLength > 0) && (correct || (!find && (GMComboBox.SelectedIndex == 0))))
 			{
 				if (!IAmServer)
 					localUser.SendObject(AesEncryption.Encryption(new QuestionPacket(MessageTextBox.Text)));
 				else
 					((User) ClientsList.Items[1]).SendObject(AesEncryption.Encryption(new QuestionPacket(MessageTextBox.Text, !HistoryDict.ContainsKey(MessageTextBox.Text))));
 				MessageTextBox.Text = "";
-				label1.Text = "true";
+				sent = true;
 			}
-			else
+			if (!sent)
 			{
-				label1.Text = "false";
+				await Task.Run(() =>
+				{
+					int i = 0;
+					Point p = new Point(0, 0);
+					Action change = () =>
+					{
+						p = SendButton.Location;
+						SendButton.BackColor = Color.Red;
+						SendButton.FlatStyle = FlatStyle.Popup;
+					};
+					Action move = () =>
+					{
+						SendButton.Location = new Point(SendButton.Location.X + Convert.ToInt32(Math.Sin(i)), SendButton.Location.Y);
+					};
+					Action back = () =>
+					{
+						SendButton.BackColor = Color.FromArgb(225, 225, 225);
+						SendButton.FlatStyle = FlatStyle.Standard;
+						SendButton.Location = p;
+					};
+					Invoke(change);
+					for (i = 0; i < 20; i++)
+					{
+						Invoke(move);
+						Thread.Sleep(40);
+					}
+					Invoke(back);
+				});
 			}
 		}
 
@@ -578,12 +606,6 @@ namespace Slovo
 			}
 		}
 
-		private void NameTextBox_KeyPress(object sender, KeyPressEventArgs e)
-		{
-			if ((((TextBox) sender).TextLength > 16) || (e.KeyChar == '@'))
-				e.Handled = true;
-		}
-
 		private void GMComboBox_KeyPress(object sender, KeyPressEventArgs e)
 		{
 			e.Handled = true;
@@ -621,17 +643,11 @@ namespace Slovo
 				ClientsList.SelectedIndex = -1;
 		}
 
-		private void Form1_Resize(object sender, EventArgs e)
-		{
-			ClientsList.Height = Height - 194;
-		}
-
 		private void StartButton_Click(object sender, EventArgs e)
 		{
 			if (ClientsList.Items.Count > 1)
 			{
 				GMComboBox.Enabled = false;
-				StartButton.Enabled = false;
 				TemplateTextBox.ReadOnly = true;
 				TemplateTextBox.BackColor = Color.White;
 				AutoAcceptCheckBox.Enabled = true;
@@ -640,7 +656,10 @@ namespace Slovo
 				SendButtonCheck();
 
 				if (IAmServer)
+				{
+					StartButton.Enabled = false;
 					ServerSendAllUsersPacket(new StartPacket(GMComboBox.SelectedIndex, TemplateTextBox.Text));
+				}
 			}
 		}
 
@@ -660,6 +679,24 @@ namespace Slovo
 		private void GMComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			TemplateTextBox.Enabled = GMComboBox.SelectedIndex != 0;
+		}
+
+		private void MessageTextBox_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			if (!char.IsLetter(e.KeyChar) && (e.KeyChar != 8))
+				e.Handled = true;
+		}
+
+		private void NameTextBox_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			if (((((TextBox) sender).TextLength > 16) || (e.KeyChar == '@')) && (e.KeyChar != 8))
+				e.Handled = true;
+		}
+
+		private void MessageTextBox_KeyDown(object sender, KeyEventArgs e)
+		{
+			if ((e.KeyValue == 13) && SendButton.Enabled)
+				SendButton_Click(null, null);
 		}
 	}
 }
