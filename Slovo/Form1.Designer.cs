@@ -276,6 +276,7 @@ namespace Slovo
 			this.TemplateTextBox.Name = "TemplateTextBox";
 			this.TemplateTextBox.Size = new System.Drawing.Size(156, 20);
 			this.TemplateTextBox.TabIndex = 24;
+			this.TemplateTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MessageTextBox_KeyPress);
 			// 
 			// Form1
 			// 

@@ -21,6 +21,7 @@ namespace Slovo
 		public byte[] Secret;
 		public Guid guid;
 		public bool GameRun;
+		public StartPacket start;
 	}
 	
 	[Serializable]

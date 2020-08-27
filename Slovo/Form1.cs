@@ -125,6 +125,9 @@ namespace Slovo
 							{
 								Action action = () =>
 								{
+									TemplateTextBox.Text = ssp.start.Template;
+									GMComboBox.SelectedIndex = ssp.start.GameMode;
+
 									GMComboBox.Enabled = false;
 									StartButton.Enabled = false;
 									TemplateTextBox.ReadOnly = true;
@@ -146,7 +149,8 @@ namespace Slovo
 								HistoryListBox.Items.Clear();
 								foreach (MessagePacket mpa in hp.messagePackets)
 								{
-									HistoryDict.Add(mpa.Word, mpa);
+									if (!HistoryDict.ContainsKey(mpa.Word))
+										HistoryDict.Add(mpa.Word, mpa);
 									MessageTextBox.AutoCompleteCustomSource.Add(mpa.ToAutoComplete());
 									HistoryListBox.Items.Add(mpa);
 								}
@@ -266,12 +270,13 @@ namespace Slovo
 							{
 								formatter.Serialize(stream, sa);
 								ssp.Secret = rsa.Encrypt(stream.ToArray(), RSAEncryptionPadding.OaepSHA256);
-								ssp.guid = user.guid;
-								ssp.GameRun = GameStarted;
 							}
+							ssp.guid = user.guid;
+							ssp.GameRun = GameStarted;
 							Action action = () =>
 							{
 								ClientsList.Items.Add(user);
+								ssp.start = new StartPacket(GMComboBox.SelectedIndex, TemplateTextBox.Text);
 							};
 							Invoke(action);
 							user.SendObject(ssp);
@@ -337,6 +342,7 @@ namespace Slovo
 							);
 							User user = new User();
 							user.ServerSetUserSocket(newConnection);
+							Thread.Sleep(100);
 							if (dr == DialogResult.Yes)
 							{
 								user.ServerSendMessage("True");
@@ -377,10 +383,10 @@ namespace Slovo
 		private async void JoinButton_Click(object sender, EventArgs e)
 		{
 			IAmServer = false;
-			HostButton.Enabled = false;
-			JoinButton.Enabled = false;
 			if (IPAddress.TryParse(IpTextBox.Text, out IPAddress ip))
 			{
+				HostButton.Enabled = false;
+				JoinButton.Enabled = false;
 				localUser = new User();
 				localUser.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 				localUser.socket.Connect(ip, int.Parse(PortTextBox.Text));
@@ -495,7 +501,7 @@ namespace Slovo
 			bool sent = false;
 			bool find = false;
 			bool correct = false;
-			if ((GMComboBox.SelectedIndex == 0) && (HistoryListBox.Items.Count > 0))
+			if ((GMComboBox.SelectedIndex == 0) && (HistoryListBox.Items.Count > 0) && (MessageTextBox.TextLength > 0))
 			{
 				for (int i = HistoryListBox.Items.Count - 1; i >= 0; i--)
 				{
@@ -535,6 +541,7 @@ namespace Slovo
 						p = SendButton.Location;
 						SendButton.BackColor = Color.Red;
 						SendButton.FlatStyle = FlatStyle.Popup;
+						SendButton.Enabled = false;
 					};
 					Action move = () =>
 					{
@@ -545,6 +552,7 @@ namespace Slovo
 						SendButton.BackColor = Color.FromArgb(225, 225, 225);
 						SendButton.FlatStyle = FlatStyle.Standard;
 						SendButton.Location = p;
+						SendButton.Enabled = true;
 					};
 					Invoke(change);
 					for (i = 0; i < 20; i++)
@@ -683,8 +691,9 @@ namespace Slovo
 
 		private void MessageTextBox_KeyPress(object sender, KeyPressEventArgs e)
 		{
-			if (!char.IsLetter(e.KeyChar) && (e.KeyChar != 8))
+			if (!char.IsLetter(e.KeyChar) && (e.KeyChar != 8) && (e.KeyChar != '-'))
 				e.Handled = true;
+			e.KeyChar = char.ToLower(e.KeyChar);
 		}
 
 		private void NameTextBox_KeyPress(object sender, KeyPressEventArgs e)
